@@ -14,15 +14,21 @@ let mongo = null;
 
 async function load() {
   if (MONGO_URI) {
-    const { MongoClient } = require('mongodb');
-    const client = new MongoClient(MONGO_URI);
-    await client.connect();
-    mongo = client.db(process.env.MONGODB_DB || 'ggpay').collection('state');
-    const doc = await mongo.findOne({ _id: 'db' });
-    if (doc) db = JSON.parse(doc.json);
-    else { db = require('./seed').buildSeed(); await flush(); }
-    console.log('Storage: MongoDB');
-    return db;
+    try {
+      const { MongoClient } = require('mongodb');
+      const client = new MongoClient(MONGO_URI, { serverSelectionTimeoutMS: 20000 });
+      await client.connect();
+      mongo = client.db(process.env.MONGODB_DB || 'ggpay').collection('state');
+      const doc = await mongo.findOne({ _id: 'db' });
+      if (doc) db = JSON.parse(doc.json);
+      else { db = require('./seed').buildSeed(); await flush(); }
+      console.log('Storage: MongoDB');
+      return db;
+    } catch (e) {
+      // Keep the app online; data then lives on local disk until MongoDB is reachable.
+      mongo = null;
+      console.error('WARNING: could not connect to MongoDB (' + e.message + '). Check the Atlas IP Access List allows 0.0.0.0/0. Using local storage for now.');
+    }
   }
   if (fs.existsSync(FILE)) {
     db = JSON.parse(fs.readFileSync(FILE, 'utf8'));
