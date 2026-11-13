@@ -131,6 +131,8 @@ const userRoute = (fn, { allowMaintenance } = {}) => wrap((req, res) => {
 });
 const requireFeature = (key) => { if (!D().settings.features[key]) fail(403, 'This feature is currently unavailable', 'FEATURE_OFF'); };
 
+app.get('/api/health', (req, res) => res.json({ ok: true, ...store.status() }));
+
 app.get('/api/config', wrap(() => ({ settings: clientSettings(), banks: D().banks.filter((b) => b.active) })));
 
 app.post('/api/auth/send-otp', wrap((req) => {

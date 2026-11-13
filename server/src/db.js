@@ -11,6 +11,7 @@ const MONGO_URI = process.env.MONGODB_URI;
 let db = null;
 let timer = null;
 let mongo = null;
+let storageError = '';
 
 async function load() {
   if (MONGO_URI) {
@@ -27,6 +28,7 @@ async function load() {
     } catch (e) {
       // Keep the app online; data then lives on local disk until MongoDB is reachable.
       mongo = null;
+      storageError = e.message;
       console.error('WARNING: could not connect to MongoDB (' + e.message + '). Check the Atlas IP Access List allows 0.0.0.0/0. Using local storage for now.');
     }
   }
@@ -100,4 +102,8 @@ function token() {
   return crypto.randomBytes(24).toString('hex');
 }
 
-module.exports = { load, reset, get, save, flush, id, hashSecret, verifySecret, digits, token };
+function status() {
+  return { storage: mongo ? 'mongodb' : 'disk', mongoConfigured: !!MONGO_URI, error: storageError };
+}
+
+module.exports = { status, load, reset, get, save, flush, id, hashSecret, verifySecret, digits, token };
