@@ -1,0 +1,68 @@
+{
+  "expo": {
+    "name": "GGPay",
+    "slug": "ggpay",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "ggpay",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.ggpay.app"
+    },
+    "android": {
+      "package": "com.ggpay.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#1A73E8",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-audio",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "GGPay uses the camera to scan UPI QR codes."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "GGPay needs your photos to set a profile picture or scan a QR image."
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "GGPay uses Face ID to unlock the app."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "backgroundColor": "#FFFFFF"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "serverUrl": ""
+    }
+  }
+}
