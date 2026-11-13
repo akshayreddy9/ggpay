@@ -71,7 +71,7 @@
       ]
     ],
     "extra": {
-      "serverUrl": "",
+      "serverUrl": "https://ggpay.onrender.com",
       "router": {
         "asyncRoutes": {
           "web": true

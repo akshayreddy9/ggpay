@@ -12,12 +12,13 @@ const errorListeners = new Set();
 // In development the phone loads JS from the laptop, so the laptop's IP is known:
 // the API server runs on the same machine on port 4000.
 export function defaultServerUrl() {
-  const extra = Constants.expoConfig?.extra?.serverUrl;
-  if (extra) return extra;
+  const online = Constants.expoConfig?.extra?.serverUrl;
+  // Release builds (the APK) always use the online server.
+  if (!__DEV__ && online) return online;
   if (Platform.OS === 'web') return `http://${window.location.hostname}:4000`;
   const host = (Constants.expoConfig?.hostUri || '').split(':')[0];
   if (host && !host.includes('exp.direct')) return `http://${host}:4000`;
-  return 'http://192.168.1.8:4000';
+  return online || 'http://192.168.1.8:4000';
 }
 
 // Loads the saved server address and session once; every request waits for it.
