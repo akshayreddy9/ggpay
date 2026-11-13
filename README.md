@@ -17,7 +17,20 @@ Gpay/
 
 ---
 
-## 1. Run it (about 5 minutes)
+## 0. Online version (works on any phone, any network)
+
+| What | Where |
+|---|---|
+| Admin panel | <https://ggpay.onrender.com/admin> (`admin` / `admin123`) |
+| Server / API | `https://ggpay.onrender.com` (hosted on Render, data stored in MongoDB Atlas) |
+| Android APK | Built with Expo EAS. Download it from the project's **Builds** page on expo.dev and install it on any Android phone |
+| Source code | Private GitHub repo `akshayreddy9/ggpay` |
+
+The APK always talks to the online server. On Render's free plan the server sleeps after about 15 minutes without use, so the **first request after a break takes up to a minute**. Open the admin panel a minute before a demo to wake it up.
+
+To rebuild the APK after changes: `cd mobile`, then `npx eas-cli@latest build -p android --profile preview`.
+
+## 1. Run it locally (about 5 minutes)
 
 **You need:** a Windows laptop with [Node.js](https://nodejs.org) (LTS) installed, and an Android phone on the **same Wi-Fi** as the laptop.
 
