@@ -2,6 +2,7 @@ import { Platform, View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { FONTS } from '../components/Text';
 import { SYMBOL_FONTS } from '../components/Sym';
+import { useOtaUpdates } from '../lib/updates';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -41,6 +42,7 @@ function Frame({ children }) {
 }
 
 export default function RootLayout() {
+  useOtaUpdates();
   const [fontsLoaded, fontError] = useFonts({ ...FONTS, ...SYMBOL_FONTS });
   if (!fontsLoaded && !fontError) return <View style={{ flex: 1, backgroundColor: '#fff' }} />;
   return (
