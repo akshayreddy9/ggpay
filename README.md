@@ -28,7 +28,10 @@ Gpay/
 
 The APK always talks to the online server. On Render's free plan the server sleeps after about 15 minutes without use, so the **first request after a break takes up to a minute**. Open the admin panel a minute before a demo to wake it up.
 
-To rebuild the APK after changes: `cd mobile`, then `npx eas-cli@latest build -p android --profile preview`.
+**Updating the installed app.** Screen and design changes are sent over the air, with no new APK needed:
+`cd mobile`, then `npx eas-cli@latest update --channel preview --message "what changed"`.
+Phones download the update the next time the app is opened or brought back to the screen, and restart into it.
+A new APK (`npx eas-cli@latest build -p android --profile preview`) is only needed after adding a native library or changing the launcher icon or app version. Install it on top of the old one with **Update**.
 
 ## 1. Run it locally (about 5 minutes)
 
