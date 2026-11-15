@@ -21,10 +21,10 @@ Gpay/
 
 | What | Where |
 |---|---|
-| Admin panel | <https://ggpay.onrender.com/admin> (`admin` / `admin123`) |
+| Admin panel | <https://ggpay.onrender.com/admin> (login available on request) |
 | Server / API | `https://ggpay.onrender.com` (hosted on Render, data stored in MongoDB Atlas) |
 | Android APK | Built with Expo EAS. Download it from the project's **Builds** page on expo.dev and install it on any Android phone |
-| Source code | Private GitHub repo `akshayreddy9/ggpay` |
+| Source code | <https://github.com/akshayreddy9/ggpay> |
 
 The APK always talks to the online server. On Render's free plan the server sleeps after about 15 minutes without use, so the **first request after a break takes up to a minute**. Open the admin panel a minute before a demo to wake it up.
 
