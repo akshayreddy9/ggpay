@@ -11,6 +11,7 @@ import { dayMonth, inr, MONTH_NAMES } from '../lib/format';
 const ICON = { bill: 'receipt', recharge: 'cellphone', cashback: 'gift', refund: 'cash-refund', bank_transfer: 'bank', self: 'swap-horizontal', admin: 'tune' };
 const TITLE = '#1F1F1F';
 const SUB = '#444746';
+const IN_GREEN = '#146C2E';
 
 export function TxnRow({ t }) {
   const out = t.direction === 'out';
@@ -21,11 +22,11 @@ export function TxnRow({ t }) {
     <Pressable onPress={() => router.push(`/txn/${t.id}`)} android_ripple={{ color: '#eee' }} style={({ pressed }) => [{ flexDirection: 'row', paddingHorizontal: 22, paddingVertical: 16, gap: 20 }, pressed && { backgroundColor: '#ECEFF3' }]}>
       {cp.user ? <Avatar user={cp.user} size={44} /> : <Avatar name={name} size={44} color={t.type === 'cashback' ? '#E37400' : '#5F6368'} icon={ICON[t.type]} />}
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 19.5, color: TITLE, lineHeight: 27, fontWeight: '500' }} numberOfLines={2}>{name}</Text>
-        <Text style={{ fontSize: 16.5, color: SUB, marginTop: 3 }}>{dayMonth(t.createdAt)}</Text>
+        <Text style={{ fontSize: 20.5, color: TITLE, lineHeight: 28, fontWeight: '500' }} numberOfLines={2}>{name}</Text>
+        <Text style={{ fontSize: 17.5, color: SUB, marginTop: 3 }}>{dayMonth(t.createdAt)}</Text>
       </View>
       <View style={{ alignItems: 'flex-end' }}>
-        <Text style={{ fontSize: 19.5, fontWeight: '500', color: failed ? SUB : out ? TITLE : C.green }}>{out || failed ? '' : '+ '}{inr(t.amount)}</Text>
+        <Text style={{ fontSize: 20.5, fontWeight: '500', color: failed ? SUB : out ? TITLE : IN_GREEN }}>{out || failed ? '' : '+ '}{inr(t.amount)}</Text>
         {failed && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
             <MI name="cancel" fill size={17} color={C.red} />
@@ -40,8 +41,8 @@ export function TxnRow({ t }) {
 
 function FilterChip({ label, active, onPress }) {
   return (
-    <Pressable onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 44, paddingLeft: 16, paddingRight: 10, borderRadius: 10, borderWidth: 1, borderColor: active ? '#D3E3FD' : '#C4C7C5', backgroundColor: active ? '#D3E3FD' : '#fff' }}>
-      <Text style={{ fontSize: 17.5, color: active ? '#041E49' : SUB, fontWeight: '500' }}>{label}</Text>
+    <Pressable onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingLeft: 12, paddingRight: 6, borderRadius: 8, borderWidth: 1, borderColor: active ? '#D3E3FD' : '#C4C7C5', backgroundColor: active ? '#D3E3FD' : '#fff' }}>
+      <Text style={{ fontSize: 15, color: active ? '#041E49' : SUB, fontWeight: '500' }}>{label}</Text>
       <MI name="arrow-drop-down" size={22} color={active ? '#041E49' : SUB} />
     </Pressable>
   );
@@ -100,9 +101,9 @@ export default function History() {
   return (
     <Screen>
       <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
-        <View style={{ height: 60, borderRadius: 30, borderWidth: 1, borderColor: '#747775', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8 }}>
+        <View style={{ height: 56, borderRadius: 28, backgroundColor: '#F0F4F9', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8 }}>
           <Pressable hitSlop={8} onPress={() => router.back()} style={{ padding: 8 }}><MI name="arrow-back" size={24} color={TITLE} /></Pressable>
-          <TextInput value={q} onChangeText={setQ} placeholder="Search transactions" placeholderTextColor={SUB} style={{ flex: 1, fontSize: 20, color: TITLE, marginLeft: 6 }} />
+          <TextInput value={q} onChangeText={setQ} placeholder="Search transactions" placeholderTextColor={SUB} style={{ flex: 1, fontSize: 18, color: TITLE, marginLeft: 6 }} />
           {q ? <Pressable onPress={() => setQ('')} style={{ padding: 8 }}><MI name="close" size={22} color={TITLE} /></Pressable>
             : <Pressable onPress={() => toast(`${txns?.length || 0} transactions in total`)} style={{ padding: 8 }}><MI name="more-vert" size={24} color={TITLE} /></Pressable>}
         </View>
@@ -122,12 +123,12 @@ export default function History() {
           keyExtractor={(t) => t.id}
           stickySectionHeadersEnabled={false}
           renderSectionHeader={({ section }) => (
-            <View style={{ backgroundColor: '#F3F6FC', paddingHorizontal: 22, paddingVertical: 18, marginTop: 4, flexDirection: 'row', alignItems: 'flex-end' }}>
+            <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: 22, paddingVertical: 18, marginTop: 4, flexDirection: 'row', alignItems: 'flex-end' }}>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 15.5, color: SUB }}>{section.year}</Text>
-                <Text style={{ fontSize: 28, color: TITLE, marginTop: 2 }}>{section.month}</Text>
+                <Text style={{ fontSize: 25, color: TITLE, marginTop: 2 }}>{section.month}</Text>
               </View>
-              <Text style={{ fontSize: 27, color: section.net > 0 ? C.green : TITLE, marginBottom: 2 }}>
+              <Text style={{ fontSize: 24, color: section.net > 0 ? IN_GREEN : TITLE, marginBottom: 2 }}>
                 {section.net > 0 ? '+ ' : ''}{inr(Math.abs(section.net))}
               </Text>
             </View>

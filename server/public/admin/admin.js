@@ -45,10 +45,54 @@ function closeModal() {
   $('#modalRoot').innerHTML = '';
   if (S.dirty) { S.dirty = false; render(); }
 }
+// Shrinks an uploaded image to a small PNG data URL so it can be stored with the data.
+function resizeImage(file, max = 192) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = Object.assign(document.createElement('canvas'), { width: Math.round(img.width * k), height: Math.round(img.height * k) });
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/png'));
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+function wireImageFields(root) {
+  root.querySelectorAll('[data-file]').forEach((inp) => {
+    const name = inp.dataset.file;
+    const hidden = root.querySelector(`input[type=hidden][name="${name}"]`);
+    const prev = root.querySelector(`[data-prev="${name}"]`);
+    inp.onchange = async () => {
+      if (!inp.files[0]) return;
+      try {
+        hidden.value = await resizeImage(inp.files[0], Number(inp.dataset.max) || 192);
+        prev.src = hidden.value;
+        prev.style.display = '';
+      } catch { toast('Could not read that image', true); }
+    };
+    const clear = root.querySelector(`[data-clear="${name}"]`);
+    if (clear) clear.onclick = () => { hidden.value = ''; prev.removeAttribute('src'); prev.style.display = 'none'; inp.value = ''; };
+  });
+}
+
 function fieldHtml(f) {
   const v = f.value ?? '';
   const name = `name="${f.name}"`;
   let input;
+  if (f.type === 'image') {
+    return `<label class="${f.span2 ? 'span2' : ''}">${esc(f.label)}<div class="img-field">
+      <img data-prev="${f.name}" ${v ? `src="${esc(v)}"` : 'style="display:none"'} alt="" />
+      <input type="file" accept="image/png,image/jpeg,image/webp" data-file="${f.name}" data-max="${f.max || 192}" />
+      <input type="hidden" ${name} value="${esc(v)}" />
+      <button type="button" class="btn sm" data-clear="${f.name}">Remove</button></div>${f.hint ? `<small class="muted">${esc(f.hint)}</small>` : ''}</label>`;
+  }
   if (f.type === 'select') {
     input = `<select ${name}>${f.options.map((o) => {
       const [val, label] = Array.isArray(o) ? o : [o, o];
@@ -95,6 +139,7 @@ function modal({ title, fields, body = '', submitText = 'Save', onSubmit, wide, 
       if (keep !== false) closeModal();
     } catch (err) { toast(err.message, true); } finally { btn.disabled = false; }
   };
+  wireImageFields(root);
   if (onMount) onMount(form);
   return form;
 }
@@ -502,8 +547,12 @@ function tabs(page, list, key) {
 
 PAGES.banks = (page) => catalogPage(page, {
   coll: 'banks', addLabel: 'Add bank',
-  columns: [{ label: 'Bank', render: (b) => `${swatch(b.color)} <b>${esc(b.short)}</b> ${esc(b.name)}` }, { label: 'IFSC prefix', key: 'ifscPrefix' }],
-  fields: [{ name: 'name', label: 'Bank name' }, { name: 'short', label: 'Short name' }, { name: 'ifscPrefix', label: 'IFSC prefix (4 letters)' }, { name: 'color', label: 'Brand colour', type: 'color', value: '#1a73e8' }, activeField],
+  columns: [
+    { label: 'Logo', render: (b) => (b.logo ? `<img src="${esc(b.logo)}" class="logo-thumb" alt="" />` : `<span class="logo-thumb" style="background:${esc(b.color)}"></span>`) },
+    { label: 'Bank', render: (b) => `<b>${esc(b.short)}</b> ${esc(b.name)}` }, { label: 'IFSC prefix', key: 'ifscPrefix' }],
+  fields: [{ name: 'name', label: 'Bank name' }, { name: 'short', label: 'Short name' }, { name: 'ifscPrefix', label: 'IFSC prefix (4 letters)' },
+    { name: 'color', label: 'Brand colour (used when there is no logo)', type: 'color', value: '#1a73e8' },
+    { name: 'logo', label: 'Bank logo', type: 'image', span2: true, hint: 'Shown on Bank accounts, the PIN screen and payment receipts in the app.' }, activeField],
 });
 
 PAGES.bills = (page) => catalogPage(page, {
@@ -630,10 +679,25 @@ PAGES.settings = async (page) => {
     selfTransfer: ['Self transfer', 'Move money between own accounts'], bills: ['Pay bills', 'Electricity, DTH, broadband…'], recharge: ['Mobile recharge', 'Prepaid plans'],
     rewards: ['Rewards', 'Scratch cards & cashback'], requests: ['Request money', 'Ask contacts for money'], checkBalance: ['Check balance', 'View bank balance with PIN'] };
   const HOME = { people: 'People section', businesses: 'Businesses section', bills: 'Bills & recharges section', offers: 'Offers & rewards section', manage: 'Manage your money section' };
+  const ad = s.adCard || {};
   page.innerHTML = `<div class="grid two">
     <div class="grid">
+      <div class="card"><h3>App branding</h3><div class="form-grid">
+        ${fieldHtml({ name: 'b_appName', label: 'App name (splash, home, receipts)', value: s.appName })}
+        ${fieldHtml({ name: 'b_appIcon', label: 'App logo', type: 'image', value: s.appIcon, max: 256, hint: 'Shown inside the app (splash, welcome screen). The phone launcher icon is part of the APK and changes only with a new build.' })}
+      </div><div style="margin-top:14px"><button class="btn primary" id="saveBrand">Save branding</button></div></div>
+      <div class="card"><h3>Sponsored ad card (Home)</h3>
+        <div class="switch-row"><div>Show ad card<small>Appears below Offers &amp; rewards</small></div>${switchHtml('ad-active', ad.active !== false)}</div>
+        <div class="form-grid" style="margin-top:12px">
+        ${fieldHtml({ name: 'ad_sponsor', label: 'Sponsor name', value: ad.sponsor })}
+        ${fieldHtml({ name: 'ad_cta', label: 'Button text', value: ad.cta })}
+        ${fieldHtml({ name: 'ad_title', label: 'Headline', value: ad.title, span2: true })}
+        ${fieldHtml({ name: 'ad_subtitle', label: 'Sub text', value: ad.subtitle, span2: true })}
+        ${fieldHtml({ name: 'ad_color', label: 'Accent colour', type: 'color', value: ad.color || '#b3261e' })}
+        ${fieldHtml({ name: 'ad_emoji', label: 'Emoji (if no photo)', value: ad.emoji })}
+        ${fieldHtml({ name: 'ad_image', label: 'Ad photo', type: 'image', value: ad.image, max: 480, span2: true })}
+      </div><div style="margin-top:14px"><button class="btn primary" id="saveAd">Save ad card</button></div></div>
       <div class="card"><h3>General</h3><div class="form-grid">
-        ${fieldHtml({ name: 'appName', label: 'App name', value: s.appName })}
         ${fieldHtml({ name: 'announcement', label: 'Home announcement (empty = hidden)', value: s.announcement })}
         ${fieldHtml({ name: 'perTxLimit', label: 'Per-transaction limit (₹)', type: 'number', value: s.perTxLimit })}
         ${fieldHtml({ name: 'dailyLimit', label: 'Daily limit per user (₹)', type: 'number', value: s.dailyLimit })}
@@ -653,9 +717,15 @@ PAGES.settings = async (page) => {
       <div class="card"><h3>App features</h3>${Object.entries(FEAT).map(([k, [l, d]]) => `<div class="switch-row"><div>${l}<small>${d}</small></div>${switchHtml('f-' + k, s.features[k])}</div>`).join('')}</div>
       <div class="card"><h3>Home screen sections</h3>${Object.entries(HOME).map(([k, l]) => `<div class="switch-row"><div>${l}</div>${switchHtml('h-' + k, s.homeSections[k])}</div>`).join('')}</div>
     </div></div>`;
+  wireImageFields(page);
+  const val = (n) => page.querySelector(`[name=${n}]`).value;
+  $('#saveBrand').onclick = () => run(() => api('PUT', '/admin/settings', { appName: val('b_appName'), appIcon: val('b_appIcon') }), 'Branding saved — app updated');
+  $('#saveAd').onclick = () => run(() => api('PUT', '/admin/settings', { adCard: {
+    active: $('#ad-active').checked, sponsor: val('ad_sponsor'), cta: val('ad_cta'), title: val('ad_title'), subtitle: val('ad_subtitle'),
+    color: val('ad_color'), emoji: val('ad_emoji'), image: val('ad_image') } }), 'Ad card saved');
   $('#saveGen').onclick = () => {
     const v = {};
-    ['appName', 'announcement', 'maintenanceMessage', 'otpCode'].forEach((k) => (v[k] = page.querySelector(`[name=${k}]`).value));
+    ['announcement', 'maintenanceMessage', 'otpCode'].forEach((k) => (v[k] = page.querySelector(`[name=${k}]`).value));
     ['perTxLimit', 'dailyLimit', 'newAccountBalance', 'referralBonus'].forEach((k) => (v[k] = Number(page.querySelector(`[name=${k}]`).value)));
     run(() => api('PUT', '/admin/settings', v), 'Settings saved — app updated');
   };

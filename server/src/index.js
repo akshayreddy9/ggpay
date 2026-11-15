@@ -50,7 +50,7 @@ function publicUser(u) {
 function publicAccount(a, withBalance) {
   const bank = findBank(a.bankId) || {};
   const out = {
-    id: a.id, bankId: a.bankId, bankName: bank.name, bankShort: bank.short, bankColor: bank.color,
+    id: a.id, bankId: a.bankId, bankName: bank.name, bankShort: bank.short, bankColor: bank.color, bankLogo: bank.logo || null,
     last4: a.accountNo.slice(-4), ifsc: a.ifsc, type: a.type, primary: a.primary, linked: a.linked, hasPin: !!a.pinHash, pinLength: a.pinLength || 4,
   };
   if (withBalance) out.balance = a.balance;
@@ -77,9 +77,13 @@ function audit(admin, action, details) {
   D().auditLogs.unshift({ id: store.id('log'), adminId: admin.id, adminName: admin.name, action, details, at: Date.now() });
   if (D().auditLogs.length > 2000) D().auditLogs.length = 2000;
 }
+const DEFAULT_AD = { active: true, sponsor: 'Foodie Express', title: 'Steal deal: meals from ₹99', subtitle: 'Hot & crispy combos near you', cta: 'Order now', color: '#B3261E', emoji: '🍗', image: '' };
+
 function clientSettings() {
   const s = D().settings;
   return {
+    appIcon: s.appIcon || '',
+    adCard: { ...DEFAULT_AD, ...(s.adCard || {}) },
     appName: s.appName, maintenanceMode: s.maintenanceMode, maintenanceMessage: s.maintenanceMessage,
     perTxLimit: s.perTxLimit, dailyLimit: s.dailyLimit, referralBonus: s.referralBonus, announcement: s.announcement,
     features: s.features, homeSections: s.homeSections, demoOtp: s.demoOtp,
@@ -335,6 +339,17 @@ function recentBills(user) {
       due: biller ? days > 10 : days > 24,
     });
     if (out.length >= 4) break;
+  }
+  // New users see the most popular billers so the row is never empty.
+  const elec = d.billers.find((b) => b.active && b.category === 'electricity');
+  const defaults = [
+    elec && { id: elec.id, kind: 'bill', name: elec.name, color: elec.color, category: 'electricity', due: true },
+    ...['Vi', 'Airtel', 'Jio'].map((n) => d.operators.find((o) => o.active && o.name === n))
+      .filter(Boolean).map((o) => ({ id: o.id, kind: 'recharge', name: `${o.name} Prepaid`, color: o.color, category: 'recharge', due: false })),
+  ].filter(Boolean);
+  for (const b of defaults) {
+    if (out.length >= 4) break;
+    if (!out.some((x) => x.id === b.id)) out.push(b);
   }
   return out;
 }
@@ -904,7 +919,7 @@ app.delete('/api/admin/requests/:id', adminRoute((req, admin) => {
 
 // ----- generic catalog CRUD -----
 const CATALOG = {
-  banks: { prefix: 'bnk', fields: ['name', 'short', 'color', 'ifscPrefix', 'active'] },
+  banks: { prefix: 'bnk', fields: ['name', 'short', 'color', 'ifscPrefix', 'logo', 'active'] },
   billers: { prefix: 'blr', fields: ['name', 'category', 'color', 'active'] },
   operators: { prefix: 'opr', fields: ['name', 'color', 'active'] },
   plans: { prefix: 'pln', fields: ['operatorId', 'price', 'validity', 'data', 'description', 'tag', 'active'] },
@@ -957,11 +972,12 @@ app.delete('/api/admin/c/:coll/:id', adminRoute((req, admin) => {
 }));
 
 // ----- settings -----
-app.get('/api/admin/settings', adminRoute(() => ({ settings: D().settings })));
+app.get('/api/admin/settings', adminRoute(() => ({ settings: { ...D().settings, adCard: { ...DEFAULT_AD, ...(D().settings.adCard || {}) }, appIcon: D().settings.appIcon || '' } })));
 app.put('/api/admin/settings', adminRoute((req, admin) => {
   const s = D().settings;
   const b = req.body;
-  ['appName', 'maintenanceMessage', 'otpCode', 'announcement'].forEach((k) => { if (b[k] !== undefined) s[k] = String(b[k]); });
+  ['appName', 'maintenanceMessage', 'otpCode', 'announcement', 'appIcon'].forEach((k) => { if (b[k] !== undefined) s[k] = String(b[k]); });
+  if (b.adCard) s.adCard = { ...DEFAULT_AD, ...(s.adCard || {}), ...b.adCard, active: b.adCard.active !== undefined ? !!b.adCard.active : (s.adCard || DEFAULT_AD).active };
   ['perTxLimit', 'dailyLimit', 'newAccountBalance', 'referralBonus'].forEach((k) => { if (b[k] !== undefined) s[k] = Number(b[k]); });
   ['maintenanceMode', 'demoOtp'].forEach((k) => { if (b[k] !== undefined) s[k] = !!b[k]; });
   if (b.features) Object.keys(s.features).forEach((k) => { if (b.features[k] !== undefined) s.features[k] = !!b.features[k]; });

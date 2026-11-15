@@ -4,7 +4,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { hasSymbol, Sym } from './Sym';
 import { router } from 'expo-router';
-import { C } from '../lib/theme';
+import { C, z } from '../lib/theme';
 import { initials } from '../lib/format';
 
 export { MaterialCommunityIcons as MCI, Sym };
@@ -44,22 +44,33 @@ export function Avatar({ user, name, color, photo, size = 48, icon, style }) {
   const n = user?.name ?? name;
   const p = user?.photo ?? photo;
   const bg = user?.color ?? color ?? C.blue;
-  const dim = { width: size, height: size, borderRadius: size / 2 };
+  const d = z(size);
+  const dim = { width: d, height: d, borderRadius: d / 2 };
   if (p) return <Image source={{ uri: p }} style={[dim, style]} />;
   return (
-    <View style={[dim, { backgroundColor: bg, alignItems: 'center', justifyContent: 'center', borderWidth: size >= 32 ? 1 : 0, borderColor: 'rgba(0,0,0,0.12)' }, style]}>
-      {icon ? (hasSymbol(icon) ? <Sym name={icon} size={size * 0.5} color="#fff" /> : <MaterialCommunityIcons name={icon} size={size * 0.5} color="#fff" />)
+    <View style={[dim, { backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }, style]}>
+      {icon ? (hasSymbol(icon) ? <Sym name={icon} size={size * 0.5} color="#fff" /> : <MaterialCommunityIcons name={icon} size={z(size * 0.5)} color="#fff" />)
         : <Text style={{ color: '#fff', fontSize: size * 0.46 }}>{initials(n)}</Text>}
     </View>
   );
 }
 
+// Bank logo uploaded from the admin panel, or a coloured tile with the bank's short name.
 export function BankLogo({ account, bank, size = 36 }) {
   const short = account?.bankShort ?? bank?.short ?? '';
   const color = account?.bankColor ?? bank?.color ?? C.blue;
+  const logo = account?.bankLogo ?? bank?.logo;
+  const d = z(size);
+  if (logo) {
+    return (
+      <View style={{ width: d, height: d, borderRadius: d * 0.24, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E3E3E3', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <Image source={{ uri: logo }} style={{ width: d * 0.78, height: d * 0.78 }} resizeMode="contain" />
+      </View>
+    );
+  }
   return (
-    <View style={{ width: size, height: size, borderRadius: size * 0.28, backgroundColor: color, alignItems: 'center', justifyContent: 'center' }}>
-      <MaterialCommunityIcons name="bank" size={size * 0.42} color="#fff" />
+    <View style={{ width: d, height: d, borderRadius: d * 0.24, backgroundColor: color, alignItems: 'center', justifyContent: 'center' }}>
+      <MaterialCommunityIcons name="bank" size={d * 0.42} color="#fff" />
       {size >= 36 && <Text style={{ color: '#fff', fontSize: size * 0.2, fontWeight: '700', marginTop: -1 }} numberOfLines={1}>{short.slice(0, 5)}</Text>}
     </View>
   );

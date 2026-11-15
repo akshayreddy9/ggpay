@@ -72,11 +72,13 @@ const foreground = (x, y) => {
   if (d) return d;
   return isP(x, y, 0.62) ? WHITE : NONE;
 };
+// Same rounded square as the in-app logo, so the native splash and the JS splash match.
 const splash = (x, y) => {
-  if (Math.hypot(x - 0.5, y - 0.5) > 0.45) return NONE;
-  const d = dot(x, y, 0.8);
-  if (d) return d;
-  return isP(x, y, 0.8) ? WHITE : BLUE;
+  const r = 0.24;
+  const dx = Math.max(Math.abs(x - 0.5) - (0.5 - r), 0);
+  const dy = Math.max(Math.abs(y - 0.5) - (0.5 - r), 0);
+  if (Math.hypot(dx, dy) > r) return NONE;
+  return icon(x, y);
 };
 
 fs.writeFileSync(path.join(out, 'icon.png'), png(1024, icon));

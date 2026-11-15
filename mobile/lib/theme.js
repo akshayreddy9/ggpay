@@ -2,6 +2,10 @@ import { Dimensions, Platform } from 'react-native';
 
 // In the browser preview the app lives in a phone-sized frame.
 export const PHONE_WIDTH = 412;
+// Sizes in the code were measured on a 412dp-wide screen; z() scales them to the real phone.
+export const SCALE = Math.min(1, (Platform.OS === 'web' ? Math.min(Dimensions.get('window').width, PHONE_WIDTH) : Dimensions.get('window').width) / PHONE_WIDTH);
+export const z = (n) => Math.round(n * SCALE * 2) / 2;
+
 export const screenWidth = () => (Platform.OS === 'web' ? Math.min(Dimensions.get('window').width, PHONE_WIDTH) : Dimensions.get('window').width);
 
 export const C = {

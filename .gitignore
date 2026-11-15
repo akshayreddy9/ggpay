@@ -8,3 +8,4 @@ mobile/dist/
 .claude/
 mobile/.claude/
 *.tmp
+*.apk

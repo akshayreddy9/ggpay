@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../components/Text';
 import { router } from 'expo-router';
-import { BankLogo, Btn, Header, MI, Row, Screen, Sheet, s } from '../components/ui';
+import { BankLogo, Header, MI, Row, Screen, Sheet, s } from '../components/ui';
 import { del, post } from '../lib/api';
 import { useApp } from '../lib/store';
 import { C } from '../lib/theme';
@@ -36,12 +36,19 @@ export default function BankAccounts() {
               </View>
             )}
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
-              <Btn title="Check balance" variant="tonal" style={{ flex: 1, height: 40 }} onPress={() => router.push('/balance')} />
-              <Btn title="Change PIN" variant="outline" style={{ flex: 1, height: 40 }} onPress={() => router.push(pinParams(a, 'change'))} />
+              <Pressable onPress={() => router.push('/balance')} style={{ flex: 1, height: 40, borderRadius: 20, backgroundColor: '#D3E3FD', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 }}>
+                <Text style={{ fontSize: 13, color: '#0B57D0', fontWeight: '500' }} numberOfLines={1}>Check balance</Text>
+              </Pressable>
+              <Pressable onPress={() => router.push(pinParams(a, 'change'))} style={{ flex: 1, height: 40, borderRadius: 20, borderWidth: 1, borderColor: '#747775', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 }}>
+                <Text style={{ fontSize: 13, color: '#0B57D0', fontWeight: '500' }} numberOfLines={1}>Change UPI PIN</Text>
+              </Pressable>
             </View>
           </View>
         ))}
-        <Btn title="Add bank account" icon="add" variant="outline" onPress={() => router.push({ pathname: '/link-bank', params: { from: 'settings' } })} style={{ marginTop: 8 }} />
+        <Pressable onPress={() => router.push({ pathname: '/link-bank', params: { from: 'settings' } })} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 12, paddingHorizontal: 4 }}>
+          <MI name="add" size={20} color="#0B57D0" />
+          <Text style={{ fontSize: 15, color: '#0B57D0', fontWeight: '500' }}>Add bank account</Text>
+        </Pressable>
       </ScrollView>
 
       <Sheet visible={!!sel} onClose={() => setSel(null)} title={sel ? `${sel.bankName} ••${sel.last4}` : ''}>

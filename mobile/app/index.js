@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { Animated, View } from 'react-native';
+import { useEffect } from 'react';
+import { View } from 'react-native';
 import { Text } from '../components/Text';
 import { router } from 'expo-router';
 import { useApp } from '../lib/store';
@@ -7,17 +7,7 @@ import { Logo } from '../components/Logo';
 
 // Splash: animate the logo, then route to the right place.
 export default function Splash() {
-  const { booted, user, accounts } = useApp();
-  const scale = useRef(new Animated.Value(0.6)).current;
-  const fade = useRef(new Animated.Value(0)).current;
-  const animDone = useRef(false);
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.spring(scale, { toValue: 1, friction: 4, useNativeDriver: true }),
-      Animated.timing(fade, { toValue: 1, duration: 600, useNativeDriver: true }),
-    ]).start(() => { animDone.current = true; });
-  }, [scale, fade]);
+  const { booted, user, accounts, settings } = useApp();
 
   useEffect(() => {
     if (!booted) return undefined;
@@ -26,16 +16,15 @@ export default function Splash() {
       else if (!user.profileComplete) router.replace('/setup-profile');
       else if (!accounts.length) router.replace('/link-bank');
       else router.replace('/home');
-    }, 1100);
+    }, 700);
     return () => clearTimeout(t);
   }, [booted, user, accounts.length]);
 
+  // Same size and place as the native splash image (160dp), so there is no jump or flash.
   return (
     <View style={{ flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
-      <Animated.View style={{ transform: [{ scale }], opacity: fade, alignItems: 'center' }}>
-        <Logo size={120} />
-      </Animated.View>
-      <Text style={{ position: 'absolute', bottom: 56, color: '#5F6368', fontSize: 30, fontWeight: '500', letterSpacing: 0.5 }}>GGPay</Text>
+      <Logo size={160} raw />
+      <Text style={{ position: 'absolute', bottom: 48, color: '#9AA0A6', fontSize: 24, fontWeight: '500', letterSpacing: 0.3 }}>{settings?.appName || 'GGPay'}</Text>
     </View>
   );
 }
