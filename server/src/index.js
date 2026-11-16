@@ -627,6 +627,23 @@ app.post('/api/admin/login', wrap((req) => {
   return { token, admin: { id: a.id, name: a.name, username: a.username, role: a.role } };
 }));
 
+// Describes this app's controls so a shared admin panel (the Admin Hub) can adapt to it.
+app.get('/api/admin/schema', adminRoute(() => ({
+  app: { name: D().settings.appName, kind: 'ggpay', version: 1 },
+  features: {
+    scan: ['Scan QR code', 'Camera QR scanner and My QR'], payContacts: ['Pay contacts / phone / UPI ID', 'Person-to-person payments'],
+    bankTransfer: ['Bank transfer', 'Pay to account number + IFSC'], selfTransfer: ['Self transfer', 'Move money between own accounts'],
+    bills: ['Pay bills', 'Electricity, DTH, broadband…'], recharge: ['Mobile recharge', 'Prepaid plans'], rewards: ['Rewards', 'Scratch cards & cashback'],
+    requests: ['Request money', 'Ask contacts for money'], checkBalance: ['Check balance', 'View bank balance with PIN'],
+  },
+  homeSections: { people: 'People section', businesses: 'Businesses section', bills: 'Bills & recharges section', offers: 'Offers & rewards section', manage: 'Manage your money section' },
+  brandingFields: [],
+  userFields: [],
+  txnCategories: false,
+  adCard: true,
+  banners: { emojiLabel: 'Emoji / icon', subtitleLabel: 'Subtitle' },
+})));
+
 app.get('/api/admin/me', adminRoute((req, a) => ({ admin: { id: a.id, name: a.name, username: a.username, role: a.role } })));
 
 app.get('/api/admin/stats', adminRoute(() => {
